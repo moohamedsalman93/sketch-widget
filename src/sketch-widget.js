@@ -1,39 +1,46 @@
-/**
- * SketchWidget - A lightweight, embeddable sketch canvas with vector export
- * Version: 1.0.0
- * License: MIT
- * Repository: https://github.com/moohamedsalman93/sketch-widget
- */
 
-(function(window, document) {
-  'use strict';
+(function (window, document) {
+  "use strict";
 
   // Default configuration
   const DEFAULT_CONFIG = {
     width: 800,
     height: 600,
-    backgroundColor: '#fcfcfa',
-    tools: ['pencil', 'pen', 'marker', 'eraser', 'lasso', 'ruler'],
-    colors: ['#000000', '#FF3B30', '#FF9500', '#FFCC00', '#4CD964', '#5AC8FA', '#0579FF', '#5856D6', '#FFFFFF'],
-    exportFormat: 'svg', // 'svg', 'png', 'both', 'json'
-    theme: 'light',
+    backgroundColor: "#fcfcfa",
+    tools: ["pencil", "pen", "marker", "eraser", "lasso", "ruler"],
+    colors: [
+      "#000000",
+      "#FF3B30",
+      "#FF9500",
+      "#FFCC00",
+      "#4CD964",
+      "#5AC8FA",
+      "#0579FF",
+      "#5856D6",
+      "#FFFFFF",
+    ],
+    exportFormat: "svg", // 'svg', 'png', 'both', 'json'
+    theme: "light",
     showToolbar: true, // Whether to show toolbar by default
-    toolbarPosition: 'bottom', // 'top', 'bottom', 'left', 'right', 'floating'
-    toolbarOrientation: 'horizontal', // 'horizontal', 'vertical'
+    toolbarPosition: "bottom", // 'top', 'bottom', 'left', 'right', 'floating'
+    toolbarOrientation: "horizontal", // 'horizontal', 'vertical'
     toolbarDraggable: true, // Whether toolbar can be dragged
     toolbarCollapsible: true, // Whether toolbar can be collapsed
     toolbarCollapsed: false, // Initial collapsed state
     editable: false, // Whether the widget allows drawing/editing
-    readOnly: false // Alternative way to set non-editable mode
+    readOnly: false, // Alternative way to set non-editable mode
   };
 
   class SketchWidget {
     constructor(container, config = {}) {
       this.config = { ...DEFAULT_CONFIG, ...config };
-      this.container = typeof container === 'string' ? document.querySelector(container) : container;
-      
+      this.container =
+        typeof container === "string"
+          ? document.querySelector(container)
+          : container;
+
       if (!this.container) {
-        throw new Error('SketchWidget: Container element not found');
+        throw new Error("SketchWidget: Container element not found");
       }
 
       // Add new state properties
@@ -58,7 +65,7 @@
         pencil: 3,
         pen: 5,
         marker: 10,
-        eraser: 15
+        eraser: 15,
       };
 
       // Alpha control
@@ -111,282 +118,278 @@
 
     addStyles() {
       // Add CSS styles for toolbar animations and layout
-      if (!document.getElementById('sketch-widget-styles')) {
-        const style = document.createElement('style');
-        style.id = 'sketch-widget-styles';
+      if (!document.getElementById("sketch-widget-styles")) {
+        const style = document.createElement("style");
+        style.id = "sketch-widget-styles";
         style.textContent = `
-          .sketch-toolbar {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: center;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-          }
+            .sketch-toolbar {
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              transform-origin: center;
+              backface-visibility: hidden;
+              -webkit-backface-visibility: hidden;
+            }
 
-          .sketch-toolbar.draggable {
-            cursor: default;
-            position: absolute;
-            z-index: 10;
-          }
+            .sketch-toolbar.draggable {
+              cursor: default;
+              position: absolute;
+              z-index: 10;
+            }
 
-          .sketch-toolbar.collapsed .toolbar-content {
-            transform: scaleX(0);
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-          }
+            .sketch-toolbar.collapsed .toolbar-content {
+              transform: scaleX(0);
+              opacity: 0;
+              width: 0;
+              overflow: hidden;
+            }
 
-          .sketch-toolbar.collapsed {
-            width: 48px !important;
-          }
+            .sketch-toolbar.collapsed {
+              width: 48px !important;
+            }
 
-          .toolbar-content {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: left center;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
+            .toolbar-content {
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              transform-origin: left center;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
 
-          .toolbar-toggle {
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-          }
+            .toolbar-toggle {
+              flex-shrink: 0;
+              transition: transform 0.3s ease;
+            }
 
-          .sketch-toolbar.collapsed .toolbar-toggle {
-            transform: rotate(180deg);
-          }
+            .sketch-toolbar.collapsed .toolbar-toggle {
+              transform: rotate(180deg);
+            }
 
-          .thickness-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            background: #e0e0e0;
-            outline: none;
-            border-radius: 4px;
-          }
+            .thickness-slider {
+              -webkit-appearance: none;
+              appearance: none;
+              background: #e0e0e0;
+              outline: none;
+              border-radius: 4px;
+            }
 
-          .thickness-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #007aff;
-            cursor: pointer;
-          }
+            .thickness-slider::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              appearance: none;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: #007aff;
+              cursor: pointer;
+            }
 
-          .thickness-slider::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #007aff;
-            cursor: pointer;
-            border: none;
-          }
+            .thickness-slider::-moz-range-thumb {
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: #007aff;
+              cursor: pointer;
+              border: none;
+            }
 
-          .alpha-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #ff6b35;
-            cursor: pointer;
-          }
+            .alpha-slider::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              appearance: none;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: #ff6b35;
+              cursor: pointer;
+            }
 
-          .alpha-slider::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #ff6b35;
-            cursor: pointer;
-            border: none;
-          }
+            .alpha-slider::-moz-range-thumb {
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: #ff6b35;
+              cursor: pointer;
+              border: none;
+            }
 
-          .tool-btn:hover {
-            background: #e8e8e8 !important;
-            border-color: #ccc !important;
-            transform: translateY(-1px);
-          }
+            .tool-btn:hover {
+              background: #e8e8e8 !important;
+              border-color: #ccc !important;
+              transform: translateY(-1px);
+            }
 
-          .tool-btn.active {
-            background: #007aff !important;
-            color: white !important;
-            border-color: #007aff !important;
-          }
+            .tool-btn.active {
+              background: #007aff !important;
+              color: white !important;
+              border-color: #007aff !important;
+            }
 
-          .color-swatch:hover {
-            transform: scale(1.1);
-            border-color: #999 !important;
-          }
+            .color-swatch:hover {
+              transform: scale(1.1);
+              border-color: #999 !important;
+            }
 
-          .color-swatch.active {
-            border-color: #007aff !important;
-            border-width: 2px !important;
-            transform: scale(1.05);
-          }
+            .color-swatch.active {
+              border-color: #007aff !important;
+              border-width: 2px !important;
+              transform: scale(1.05);
+            }
 
-          .toolbar-controls button:hover {
-            background: #e8e8e8 !important;
-            border-color: #ccc !important;
-            transform: translateY(-1px);
-          }
+            .toolbar-controls button:hover {
+              background: #e8e8e8 !important;
+              border-color: #ccc !important;
+              transform: translateY(-1px);
+            }
 
-          .toolbar-orientation-toggle:hover,
-          .toolbar-toggle:hover {
-            background: #e8e8e8 !important;
-            border-color: #ccc !important;
-            transform: translateY(-1px);
-          }
+            .toolbar-orientation-toggle:hover,
+            .toolbar-toggle:hover {
+              background: #e8e8e8 !important;
+              border-color: #ccc !important;
+              transform: translateY(-1px);
+            }
 
-          .sketch-toolbar.hidden {
-            display: none !important;
-          }
+            .sketch-toolbar.hidden {
+              display: none !important;
+            }
 
-          .sketch-widget.non-editable .sketch-canvas {
-            cursor: default !important;
-            opacity: 0.8;
-          }
+            .sketch-widget.non-editable .sketch-canvas {
+              cursor: default !important;
+              opacity: 0.8;
+            }
 
-          .sketch-widget.non-editable .sketch-toolbar {
-            opacity: 0.6;
-            pointer-events: none;
-          }
+            .sketch-widget.non-editable .sketch-toolbar {
+              opacity: 0.6;
+              pointer-events: none;
+            }
 
-          .sketch-widget.non-editable .sketch-toolbar .tool-btn,
-          .sketch-widget.non-editable .sketch-toolbar .color-swatch,
-          .sketch-widget.non-editable .sketch-toolbar .thickness-slider,
-          .sketch-widget.non-editable .sketch-toolbar .alpha-slider,
-          .sketch-widget.non-editable .sketch-toolbar button {
-            cursor: not-allowed !important;
-            opacity: 0.5;
-          }
+            .sketch-widget.non-editable .sketch-toolbar .tool-btn,
+            .sketch-widget.non-editable .sketch-toolbar .color-swatch,
+            .sketch-widget.non-editable .sketch-toolbar .thickness-slider,
+            .sketch-widget.non-editable .sketch-toolbar .alpha-slider,
+            .sketch-widget.non-editable .sketch-toolbar button {
+              cursor: not-allowed !important;
+              opacity: 0.5;
+            }
+              
+            .sketch-toolbar.dragging {
+              opacity: 0.9;
+              transform: scale(1.01);
+              box-shadow: 0 12px 40px rgba(0,0,0,0.25) !important;
+              transition: none !important;
+              will-change: transform;
+              z-index: 10 !important;
+            }
 
-          
+            .sketch-toolbar.vertical {
+              flex-direction: column;
+              width: auto !important;
+              min-width: 60px;
+              max-width: 100px;
+            }
 
+            .sketch-toolbar.vertical .toolbar-content {
+              flex-direction: column;
+              align-items: center;
+              gap: 16px;
+              padding: 8px;
+            }
 
+            .sketch-toolbar.vertical .toolbar-tools {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              border-right: none;
+              border-bottom: 1px solid #e0e0e0;
+              padding: 0 0 12px 0;
+              margin: 0;
+              width: 100%;
+              align-items: center;
+            }
 
-          .sketch-toolbar.dragging {
-            opacity: 0.9;
-            transform: scale(1.01);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.25) !important;
-            transition: none !important;
-            will-change: transform;
-            z-index: 10 !important;
-          }
+            .sketch-toolbar.vertical .toolbar-controls {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              align-items: center;
+              border-right: none;
+              border-bottom: 1px solid #e0e0e0;
+              padding: 0 0 12px 0;
+              margin: 0;
+              width: 100%;
+            }
 
-          .sketch-toolbar.vertical {
-            flex-direction: column;
-            width: auto !important;
-            min-width: 60px;
-            max-width: 100px;
-          }
+            .sketch-toolbar.vertical .toolbar-controls .thickness-slider {
+              writing-mode: bt-lr;
+              -webkit-appearance: slider-vertical;
+              width: 6px;
+              height: 60px;
+              background: #e0e0e0;
+              outline: none;
+              border-radius: 3px;
+            }
 
-          .sketch-toolbar.vertical .toolbar-content {
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            padding: 8px;
-          }
+            .sketch-toolbar.vertical .color-swatches {
+              display: flex;
+              flex-direction: column;
+              gap: 6px;
+              padding: 0;
+              align-items: center;
+              width: 100%;
+            }
 
-          .sketch-toolbar.vertical .toolbar-tools {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            border-right: none;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 0 0 12px 0;
-            margin: 0;
-            width: 100%;
-            align-items: center;
-          }
+            .toolbar-drag-handle {
+              cursor: grab;
+              padding: 4px;
+              border-radius: 4px;
+              background: transparent;
+              border: 1px dashed #ccc;
+              margin: 0 8px 0 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #999;
+              user-select: none;
+              transition: all 0.15s ease;
+              min-width: 20px;
+              min-height: 20px;
+              flex-shrink: 0;
+            }
 
-          .sketch-toolbar.vertical .toolbar-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: center;
-            border-right: none;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 0 0 12px 0;
-            margin: 0;
-            width: 100%;
-          }
+            .toolbar-drag-handle:hover {
+              background: #f5f5f5;
+              border-color: #999;
+              color: #666;
+              cursor: grab;
+            }
 
-          .sketch-toolbar.vertical .toolbar-controls .thickness-slider {
-            writing-mode: bt-lr;
-            -webkit-appearance: slider-vertical;
-            width: 6px;
-            height: 60px;
-            background: #e0e0e0;
-            outline: none;
-            border-radius: 3px;
-          }
+            .toolbar-drag-handle:active {
+              cursor: grabbing;
+              background: #eee;
+              border-color: #666;
+              transform: scale(0.98);
+            }
 
-          .sketch-toolbar.vertical .color-swatches {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 0;
-            align-items: center;
-            width: 100%;
-          }
+            .sketch-toolbar.vertical .toolbar-drag-handle {
+              margin: 0 0 8px 0;
+              align-self: center;
+            }
 
-          .toolbar-drag-handle {
-            cursor: grab;
-            padding: 4px;
-            border-radius: 4px;
-            background: transparent;
-            border: 1px dashed #ccc;
-            margin: 0 8px 0 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            user-select: none;
-            transition: all 0.15s ease;
-            min-width: 20px;
-            min-height: 20px;
-            flex-shrink: 0;
-          }
+            .toolbar-orientation-toggle {
+              background: #f4f4f4;
+              border: none;
+              border-radius: 50%;
+              width: 32px;
+              height: 32px;
+              font-size: 14px;
+              cursor: pointer;
+              margin-left: 8px;
+              transition: all 0.2s;
+            }
 
-          .toolbar-drag-handle:hover {
-            background: #f5f5f5;
-            border-color: #999;
-            color: #666;
-            cursor: grab;
-          }
-
-          .toolbar-drag-handle:active {
-            cursor: grabbing;
-            background: #eee;
-            border-color: #666;
-            transform: scale(0.98);
-          }
-
-          .sketch-toolbar.vertical .toolbar-drag-handle {
-            margin: 0 0 8px 0;
-            align-self: center;
-          }
-
-          .toolbar-orientation-toggle {
-            background: #f4f4f4;
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-left: 8px;
-            transition: all 0.2s;
-          }
-
-          .toolbar-orientation-toggle:hover {
-            background: #e0e0e0;
-            transform: scale(1.1);
-          }
+            .toolbar-orientation-toggle:hover {
+              background: #e0e0e0;
+              transform: scale(1.1);
+            }
 
 
-        `;
+          `;
         document.head.appendChild(style);
       }
     }
@@ -394,22 +397,30 @@
     createHTML() {
       // Handle percentage dimensions by calculating actual size
       const containerRect = this.container.getBoundingClientRect();
-      
+
       // If container has no dimensions, wait a bit and try again
-      if ((containerRect.width === 0 || containerRect.height === 0) && 
-          (this.config.width === '100%' || this.config.height === '100%')) {
+      if (
+        (containerRect.width === 0 || containerRect.height === 0) &&
+        (this.config.width === "100%" || this.config.height === "100%")
+      ) {
         setTimeout(() => this.createHTML(), 50);
         return;
       }
-      
-      const actualWidth = this.config.width === '100%' ? containerRect.width : 
-                         (typeof this.config.width === 'string' && this.config.width.includes('%')) ? 
-                         (parseFloat(this.config.width) / 100) * containerRect.width : 
-                         parseInt(this.config.width);
-      const actualHeight = this.config.height === '100%' ? containerRect.height : 
-                          (typeof this.config.height === 'string' && this.config.height.includes('%')) ? 
-                          (parseFloat(this.config.height) / 100) * containerRect.height : 
-                          parseInt(this.config.height);
+
+      const actualWidth =
+        this.config.width === "100%"
+          ? containerRect.width
+          : typeof this.config.width === "string" &&
+            this.config.width.includes("%")
+          ? (parseFloat(this.config.width) / 100) * containerRect.width
+          : parseInt(this.config.width);
+      const actualHeight =
+        this.config.height === "100%"
+          ? containerRect.height
+          : typeof this.config.height === "string" &&
+            this.config.height.includes("%")
+          ? (parseFloat(this.config.height) / 100) * containerRect.height
+          : parseInt(this.config.height);
 
       // Store actual dimensions for canvas
       this.actualWidth = actualWidth || 800;
@@ -418,41 +429,43 @@
       // Add CSS styles
       this.addStyles();
 
-      const editableClass = this.editable ? '' : 'non-editable';
-      const readOnlyIndicator = this.editable ? '' : 'read-only-indicator';
+      const editableClass = this.editable ? "" : "non-editable";
+      const readOnlyIndicator = this.editable ? "" : "read-only-indicator";
 
       // Determine layout based on toolbar position
-      const isFloating = this.config.toolbarPosition === 'floating';
-      const containerStyle = isFloating ?
-        'position: relative; width: 100%; height: 100%;' :
-        this.getContainerLayoutStyle();
+      const isFloating = this.config.toolbarPosition === "floating";
+      const containerStyle = isFloating
+        ? "position: relative; width: 100%; height: 100%;"
+        : this.getContainerLayoutStyle();
 
       this.container.innerHTML = `
-        <div class="sketch-widget ${editableClass} ${readOnlyIndicator}" style="${containerStyle}">
-          <div class="canvas-container" style="display: flex; justify-content: center; align-items: center; flex: 1; width: 100%; height: 100%;">
-            <canvas class="sketch-canvas" width="${this.actualWidth}" height="${this.actualHeight}" style="
-              background: ${this.config.backgroundColor};
-              border-radius: 12px;
-              box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-              border: 1px solid #e0e0e0;
-              touch-action: none;
-              -webkit-touch-callout: none;
-              -webkit-user-select: none;
-              -webkit-tap-highlight-color: transparent;
-              user-select: none;
-              max-width: 100%;
-              max-height: 100%;
-              width: ${this.actualWidth}px;
-              height: ${this.actualHeight}px;
-            "></canvas>
+          <div class="sketch-widget ${editableClass} ${readOnlyIndicator}" style="${containerStyle}">
+            <div class="canvas-container" style="display: flex; justify-content: center; align-items: center; flex: 1; width: 100%; height: 100%;">
+              <canvas class="sketch-canvas" width="${
+                this.actualWidth
+              }" height="${this.actualHeight}" style="
+                background: ${this.config.backgroundColor};
+                border-radius: 12px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                border: 1px solid #e0e0e0;
+                touch-action: none;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
+                max-width: 100%;
+                max-height: 100%;
+                width: ${this.actualWidth}px;
+                height: ${this.actualHeight}px;
+              "></canvas>
+            </div>
+            ${this.toolbarVisible ? this.createToolbarHTML() : ""}
           </div>
-          ${this.toolbarVisible ? this.createToolbarHTML() : ''}
-        </div>
-      `;
+        `;
 
       // Wait for the canvas to be in the DOM
       setTimeout(() => {
-        if (typeof callback === 'function') callback();
+        if (typeof callback === "function") callback();
       }, 0);
     }
 
@@ -461,13 +474,13 @@
       const orientation = this.config.toolbarOrientation;
 
       switch (position) {
-        case 'top':
+        case "top":
           return `position: relative; display: flex; flex-direction: column; width: ${this.config.width}; height: ${this.config.height};`;
-        case 'bottom':
+        case "bottom":
           return `position: relative; display: flex; flex-direction: column-reverse; width: ${this.config.width}; height: ${this.config.height};`;
-        case 'left':
+        case "left":
           return `position: relative; display: flex; flex-direction: row; width: ${this.config.width}; height: ${this.config.height};`;
-        case 'right':
+        case "right":
           return `position: relative; display: flex; flex-direction: row-reverse; width: ${this.config.width}; height: ${this.config.height};`;
         default:
           return `position: relative; display: flex; flex-direction: column-reverse; width: ${this.config.width}; height: ${this.config.height};`;
@@ -476,41 +489,45 @@
 
     getToolbarStyle() {
       const position = this.config.toolbarPosition;
-      const isFloating = position === 'floating';
+      const isFloating = position === "floating";
 
       let baseStyle = `
-        display: flex;
-        background: #fff;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-        padding: 8px 12px;
-        border-radius: 12px;
-        border: 1px solid #e0e0e0;
-        flex-shrink: 0;
-      `;
+          display: flex;
+          background: #fff;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+          padding: 8px 12px;
+          border-radius: 12px;
+          border: 1px solid #e0e0e0;
+          flex-shrink: 0;
+        `;
 
       if (isFloating) {
         baseStyle += `
-          position: absolute;
-          top: 0;
-          left: 0;
-          transform: translate(${this.toolbarPosition.x}px, ${this.toolbarPosition.y}px);
-          z-index: 10;
-          will-change: transform;
-        `;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: translate(${this.toolbarPosition.x}px, ${this.toolbarPosition.y}px);
+            z-index: 10;
+            will-change: transform;
+          `;
       } else {
         const marginStyle = this.getToolbarMarginStyle();
         baseStyle += `
-          margin: 0 auto;
-          width: fit-content;
-          ${marginStyle}
-        `;
+            margin: 0 auto;
+            width: fit-content;
+            ${marginStyle}
+          `;
 
         // Adjust alignment for side positions
-        if (position === 'left' || position === 'right') {
+        if (position === "left" || position === "right") {
           baseStyle += `
-            align-items: ${this.config.toolbarOrientation === 'vertical' ? 'stretch' : 'center'};
-            margin: 16px;
-          `;
+              align-items: ${
+                this.config.toolbarOrientation === "vertical"
+                  ? "stretch"
+                  : "center"
+              };
+              margin: 16px;
+            `;
         } else {
           baseStyle += `align-items: center;`;
         }
@@ -521,239 +538,265 @@
 
     getToolbarMarginStyle() {
       switch (this.config.toolbarPosition) {
-        case 'top': return 'margin-bottom: 16px;';
-        case 'bottom': return 'margin-top: 16px;';
-        case 'left': return 'margin-right: 16px;';
-        case 'right': return 'margin-left: 16px;';
-        default: return 'margin-top: 16px;';
+        case "top":
+          return "margin-bottom: 16px;";
+        case "bottom":
+          return "margin-top: 16px;";
+        case "left":
+          return "margin-right: 16px;";
+        case "right":
+          return "margin-left: 16px;";
+        default:
+          return "margin-top: 16px;";
       }
     }
 
     createToolbarHTML() {
-      const collapsedClass = this.toolbarCollapsed ? 'collapsed' : '';
-      const hiddenClass = !this.toolbarVisible ? 'hidden' : '';
-      const draggableClass = this.config.toolbarDraggable ? 'draggable' : '';
-      const orientationClass = this.config.toolbarOrientation === 'vertical' ? 'vertical' : '';
+      const collapsedClass = this.toolbarCollapsed ? "collapsed" : "";
+      const hiddenClass = !this.toolbarVisible ? "hidden" : "";
+      const draggableClass = this.config.toolbarDraggable ? "draggable" : "";
+      const orientationClass =
+        this.config.toolbarOrientation === "vertical" ? "vertical" : "";
 
       const toolbarStyle = this.getToolbarStyle();
 
       return `
-        <div class="sketch-toolbar ${collapsedClass} ${hiddenClass} ${draggableClass} ${orientationClass}" style="${toolbarStyle}"
-             data-toolbar-id="main">
-          <div class="toolbar-content">
-            ${this.config.toolbarDraggable ? `
-              <div class="toolbar-drag-handle" title="Drag to move toolbar">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                  <rect x="2" y="2" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="5.25" y="2" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="8.5" y="2" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="2" y="5.25" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="5.25" y="5.25" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="8.5" y="5.25" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="2" y="8.5" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="5.25" y="8.5" width="1.5" height="1.5" rx="0.5"/>
-                  <rect x="8.5" y="8.5" width="1.5" height="1.5" rx="0.5"/>
-                </svg>
-              </div>
-            ` : ''}
+          <div class="sketch-toolbar ${collapsedClass} ${hiddenClass} ${draggableClass} ${orientationClass}" style="${toolbarStyle}"
+               data-toolbar-id="main">
+            <div class="toolbar-content">
+              ${
+                this.config.toolbarDraggable
+                  ? `
+                <div class="toolbar-drag-handle" title="Drag to move toolbar">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                    <rect x="2" y="2" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="5.25" y="2" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="8.5" y="2" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="2" y="5.25" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="5.25" y="5.25" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="8.5" y="5.25" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="2" y="8.5" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="5.25" y="8.5" width="1.5" height="1.5" rx="0.5"/>
+                    <rect x="8.5" y="8.5" width="1.5" height="1.5" rx="0.5"/>
+                  </svg>
+                </div>
+              `
+                  : ""
+              }
 
-            <div class="toolbar-tools" style="
-              display: flex;
-              flex-wrap: wrap;
-              max-width: 200px;
-              gap: 6px;
-              align-items: center;
-              padding-right: 12px;
-            ">
-              ${this.config.tools.map(tool => `
-                <button class="tool-btn" data-tool="${tool}" style="
+              <div class="toolbar-tools" style="
+                display: flex;
+                flex-wrap: wrap;
+                max-width: 200px;
+                gap: 6px;
+                align-items: center;
+                padding-right: 12px;
+              ">
+                ${this.config.tools
+                  .map(
+                    (tool) => `
+                  <button class="tool-btn" data-tool="${tool}" style="
+                    border: none;
+                    background: #f8f8f8;
+                    border-radius: 8px;
+                    width: 36px;
+                    height: 36px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid transparent;
+                  " title="${
+                    tool.charAt(0).toUpperCase() + tool.slice(1)
+                  }">${this.getToolIcon(tool)}</button>
+                `
+                  )
+                  .join("")}
+              </div>
+
+              <div class="toolbar-controls" style="
+                display: flex;
+                flex-wrap: wrap;
+                max-width: 200px;
+                gap: 8px;
+                align-items: center;
+                padding: 0 12px;
+              ">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 11px; color: #666; font-weight: 500;">Size</span>
+                  <input type="range" class="thickness-slider" min="1" max="30" value="3" style="
+                    width: 60px;
+                    height: 4px;
+                  ">
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 11px; color: #666; font-weight: 500;">Alpha</span>
+                  <input type="range" class="alpha-slider" min="0.1" max="1" step="0.1" value="1" style="
+                    width: 60px;
+                    height: 4px;
+                    -webkit-appearance: none;
+                    appearance: none;
+                    background: #e0e0e0;
+                    outline: none;
+                    border-radius: 4px;
+                  ">
+                </div>
+                <button class="undo-btn" style="
                   border: none;
                   background: #f8f8f8;
-                  border-radius: 8px;
-                  width: 36px;
-                  height: 36px;
+                  border-radius: 6px;
+                  width: 28px;
+                  height: 28px;
                   font-size: 14px;
                   cursor: pointer;
                   transition: all 0.15s ease;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
                   border: 1px solid transparent;
-                " title="${tool.charAt(0).toUpperCase() + tool.slice(1)}">${this.getToolIcon(tool)}</button>
-              `).join('')}
-            </div>
-
-            <div class="toolbar-controls" style="
-              display: flex;
-              flex-wrap: wrap;
-              max-width: 200px;
-              gap: 8px;
-              align-items: center;
-              padding: 0 12px;
-            ">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 11px; color: #666; font-weight: 500;">Size</span>
-                <input type="range" class="thickness-slider" min="1" max="30" value="3" style="
-                  width: 60px;
-                  height: 4px;
-                ">
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 11px; color: #666; font-weight: 500;">Alpha</span>
-                <input type="range" class="alpha-slider" min="0.1" max="1" step="0.1" value="1" style="
-                  width: 60px;
-                  height: 4px;
-                  -webkit-appearance: none;
-                  appearance: none;
-                  background: #e0e0e0;
-                  outline: none;
-                  border-radius: 4px;
-                ">
-              </div>
-              <button class="undo-btn" style="
-                border: none;
-                background: #f8f8f8;
-                border-radius: 6px;
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.15s ease;
-                border: 1px solid transparent;
-              " title="Undo">↩️</button>
-              <button class="redo-btn" style="
-                border: none;
-                background: #f8f8f8;
-                border-radius: 6px;
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.15s ease;
-                border: 1px solid transparent;
-              " title="Redo">↪️</button>
-              <button class="clear-btn" style="
-                border: none;
-                background: #f8f8f8;
-                border-radius: 6px;
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.15s ease;
-                border: 1px solid transparent;
-              " title="Clear">🗑️</button>
-              <button class="export-btn" style="
-                border: none;
-                background: #f8f8f8;
-                border-radius: 6px;
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.15s ease;
-                border: 1px solid transparent;
-                display: none;
-              " title="Export">💾</button>
-
-            </div>
-
-            <div class="color-swatches" style="
-              display: flex;
-              gap: 4px;
-              align-items: center;
-              padding-left: 12px;
-              flex-wrap: wrap;
-              max-width: 160px;
-            ">
-              ${this.config.colors.map(color => `
-                <button class="color-swatch" data-color="${color}" style="
-                  width: 20px;
-                  height: 20px;
-                  border-radius: 4px;
-                  border: 1px solid #ddd;
-                  background: ${color};
+                " title="Undo">↩️</button>
+                <button class="redo-btn" style="
+                  border: none;
+                  background: #f8f8f8;
+                  border-radius: 6px;
+                  width: 28px;
+                  height: 28px;
+                  font-size: 14px;
                   cursor: pointer;
                   transition: all 0.15s ease;
-                  ${color === '#FFFFFF' ? 'border: 1px solid #bbb;' : ''}
-                " title="Color: ${color}"></button>
-              `).join('')}
+                  border: 1px solid transparent;
+                " title="Redo">↪️</button>
+                <button class="clear-btn" style="
+                  border: none;
+                  background: #f8f8f8;
+                  border-radius: 6px;
+                  width: 28px;
+                  height: 28px;
+                  font-size: 14px;
+                  cursor: pointer;
+                  transition: all 0.15s ease;
+                  border: 1px solid transparent;
+                " title="Clear">🗑️</button>
+                <button class="export-btn" style="
+                  border: none;
+                  background: #f8f8f8;
+                  border-radius: 6px;
+                  width: 28px;
+                  height: 28px;
+                  font-size: 14px;
+                  cursor: pointer;
+                  transition: all 0.15s ease;
+                  border: 1px solid transparent;
+                  display: none;
+                " title="Export">💾</button>
+
+              </div>
+
+              <div class="color-swatches" style="
+                display: flex;
+                gap: 4px;
+                align-items: center;
+                padding-left: 12px;
+                flex-wrap: wrap;
+                max-width: 160px;
+              ">
+                ${this.config.colors
+                  .map(
+                    (color) => `
+                  <button class="color-swatch" data-color="${color}" style="
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 4px;
+                    border: 1px solid #ddd;
+                    background: ${color};
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                    ${color === "#FFFFFF" ? "border: 1px solid #bbb;" : ""}
+                  " title="Color: ${color}"></button>
+                `
+                  )
+                  .join("")}
+              </div>
+
+              <div class="lasso-operations" style="display: none; gap: 8px; align-items: center; padding-left: 16px; border-left: 1px solid #e0e0e0;">
+                <button class="lasso-delete-btn" style="
+                  border: none;
+                  background: #ff4444;
+                  color: white;
+                  border-radius: 50%;
+                  width: 36px;
+                  height: 36px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  transition: all 0.2s;
+                " title="Delete Selection">🗑️</button>
+                <button class="lasso-copy-btn" style="
+                  border: none;
+                  background: #4444ff;
+                  color: white;
+                  border-radius: 50%;
+                  width: 36px;
+                  height: 36px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  transition: all 0.2s;
+                " title="Copy Selection">📋</button>
+              </div>
             </div>
 
-            <div class="lasso-operations" style="display: none; gap: 8px; align-items: center; padding-left: 16px; border-left: 1px solid #e0e0e0;">
-              <button class="lasso-delete-btn" style="
-                border: none;
-                background: #ff4444;
-                color: white;
-                border-radius: 50%;
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-                cursor: pointer;
-                transition: all 0.2s;
-              " title="Delete Selection">🗑️</button>
-              <button class="lasso-copy-btn" style="
-                border: none;
-                background: #4444ff;
-                color: white;
-                border-radius: 50%;
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-                cursor: pointer;
-                transition: all 0.2s;
-              " title="Copy Selection">📋</button>
-            </div>
-          </div>
-
-          <button class="toolbar-orientation-toggle" style="
-            border: none;
-            background: #f8f8f8;
-            border-radius: 6px;
-            width: 28px;
-            height: 28px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 8px;
-            transition: all 0.15s ease;
-            border: 1px solid transparent;
-            display: none !important;
-          " title="Toggle Orientation">${this.config.toolbarOrientation === 'vertical' ? '↔️' : '↕️'}</button>
-
-          ${this.config.toolbarCollapsible ? `
-            <button class="toolbar-toggle" style="
+            <button class="toolbar-orientation-toggle" style="
               border: none;
-              background: #007aff;
-              color: white;
-              border-radius: 50%;
+              background: #f8f8f8;
+              border-radius: 6px;
               width: 28px;
               height: 28px;
-              font-size: 10px;
+              font-size: 12px;
               cursor: pointer;
-              margin-left: 12px;
-              transition: all 0.3s;
-              display: none;
-            " title="Toggle Toolbar">◀</button>
-          ` : ''}
-        </div>
-      `;
+              margin-left: 8px;
+              transition: all 0.15s ease;
+              border: 1px solid transparent;
+              display: none !important;
+            " title="Toggle Orientation">${
+              this.config.toolbarOrientation === "vertical" ? "↔️" : "↕️"
+            }</button>
+
+            ${
+              this.config.toolbarCollapsible
+                ? `
+              <button class="toolbar-toggle" style="
+                border: none;
+                background: #007aff;
+                color: white;
+                border-radius: 50%;
+                width: 28px;
+                height: 28px;
+                font-size: 10px;
+                cursor: pointer;
+                margin-left: 12px;
+                transition: all 0.3s;
+                display: none;
+              " title="Toggle Toolbar">◀</button>
+            `
+                : ""
+            }
+          </div>
+        `;
     }
 
     getToolIcon(tool) {
       const icons = {
-        pencil: '✏️',
-        pen: '🖊️',
-        marker: '🖍️',
-        eraser: '🧽',
-        lasso: '🔲',
-        ruler: '📏'
+        pencil: "✏️",
+        pen: "🖊️",
+        marker: "🖍️",
+        eraser: "🧽",
+        lasso: "🔲",
+        ruler: "📏",
       };
-      return icons[tool] || '🖊️';
+      return icons[tool] || "🖊️";
     }
 
     setupCanvas() {
-      this.canvas = this.container.querySelector('.sketch-canvas');
-      this.ctx = this.canvas.getContext('2d');
+      this.canvas = this.container.querySelector(".sketch-canvas");
+      this.ctx = this.canvas.getContext("2d");
 
       // Get device pixel ratio for high-DPI displays
       this.pixelRatio = window.devicePixelRatio || 1;
@@ -769,20 +812,20 @@
       this.undoneStrokes = [];
       this.currentStroke = null;
       this.drawing = false;
-      this.currentTool = 'pencil';
+      this.currentTool = "pencil";
       this.currentColor = this.config.colors[0];
       this.thickness = 3;
     }
 
     setupCacheCanvas() {
       // Create an off-screen canvas for caching completed strokes
-      this.cacheCanvas = document.createElement('canvas');
+      this.cacheCanvas = document.createElement("canvas");
       this.cacheCanvas.width = this.actualWidth * this.pixelRatio;
       this.cacheCanvas.height = this.actualHeight * this.pixelRatio;
-      this.cacheCtx = this.cacheCanvas.getContext('2d');
+      this.cacheCtx = this.cacheCanvas.getContext("2d");
       this.cacheCtx.scale(this.pixelRatio, this.pixelRatio);
       this.cacheCtx.imageSmoothingEnabled = true;
-      this.cacheCtx.imageSmoothingQuality = 'high';
+      this.cacheCtx.imageSmoothingQuality = "high";
       this.cacheDirty = true;
     }
 
@@ -792,16 +835,16 @@
       this.canvas.height = this.actualHeight * this.pixelRatio;
 
       // Scale the canvas back down using CSS
-      this.canvas.style.width = this.actualWidth + 'px';
-      this.canvas.style.height = this.actualHeight + 'px';
+      this.canvas.style.width = this.actualWidth + "px";
+      this.canvas.style.height = this.actualHeight + "px";
 
       // Scale the drawing context so everything draws at the correct size
       this.ctx.scale(this.pixelRatio, this.pixelRatio);
 
       // Enable better text rendering
-      this.ctx.textBaseline = 'top';
+      this.ctx.textBaseline = "top";
       this.ctx.imageSmoothingEnabled = true;
-      this.ctx.imageSmoothingQuality = 'high';
+      this.ctx.imageSmoothingQuality = "high";
     }
 
     // Get accurate coordinates relative to canvas with high precision for Apple Pencil
@@ -820,7 +863,7 @@
 
       return {
         x: clampedX,
-        y: clampedY
+        y: clampedY,
       };
     }
 
@@ -828,8 +871,8 @@
       if (!this.toolbarVisible) return;
 
       // Tool selection - only if editable
-      this.container.querySelectorAll('.tool-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+      this.container.querySelectorAll(".tool-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
           if (this.editable) {
             this.setActiveTool(btn.dataset.tool);
           }
@@ -837,8 +880,8 @@
       });
 
       // Color selection - only if editable
-      this.container.querySelectorAll('.color-swatch').forEach(swatch => {
-        swatch.addEventListener('click', () => {
+      this.container.querySelectorAll(".color-swatch").forEach((swatch) => {
+        swatch.addEventListener("click", () => {
           if (this.editable) {
             this.setActiveColor(swatch.dataset.color);
           }
@@ -846,9 +889,9 @@
       });
 
       // Thickness slider - only if editable
-      const thicknessSlider = this.container.querySelector('.thickness-slider');
+      const thicknessSlider = this.container.querySelector(".thickness-slider");
       if (thicknessSlider) {
-        thicknessSlider.addEventListener('input', (e) => {
+        thicknessSlider.addEventListener("input", (e) => {
           if (this.editable) {
             this.thickness = parseInt(e.target.value);
             this.toolThickness[this.currentTool] = this.thickness;
@@ -857,9 +900,9 @@
       }
 
       // Alpha slider - only if editable
-      const alphaSlider = this.container.querySelector('.alpha-slider');
+      const alphaSlider = this.container.querySelector(".alpha-slider");
       if (alphaSlider) {
-        alphaSlider.addEventListener('input', (e) => {
+        alphaSlider.addEventListener("input", (e) => {
           if (this.editable) {
             this.currentAlpha = parseFloat(e.target.value);
           }
@@ -867,44 +910,54 @@
       }
 
       // Control buttons - only if editable
-      const undoBtn = this.container.querySelector('.undo-btn');
-      if (undoBtn) undoBtn.addEventListener('click', () => {
-        if (this.editable) this.undo();
-      });
+      const undoBtn = this.container.querySelector(".undo-btn");
+      if (undoBtn)
+        undoBtn.addEventListener("click", () => {
+          if (this.editable) this.undo();
+        });
 
-      const redoBtn = this.container.querySelector('.redo-btn');
-      if (redoBtn) redoBtn.addEventListener('click', () => {
-        if (this.editable) this.redo();
-      });
+      const redoBtn = this.container.querySelector(".redo-btn");
+      if (redoBtn)
+        redoBtn.addEventListener("click", () => {
+          if (this.editable) this.redo();
+        });
 
-      const clearBtn = this.container.querySelector('.clear-btn');
-      if (clearBtn) clearBtn.addEventListener('click', () => {
-        if (this.editable) this.clear();
-      });
+      const clearBtn = this.container.querySelector(".clear-btn");
+      if (clearBtn)
+        clearBtn.addEventListener("click", () => {
+          if (this.editable) this.clear();
+        });
 
-      const exportBtn = this.container.querySelector('.export-btn');
-      if (exportBtn) exportBtn.addEventListener('click', () => this.exportDrawing());
+      const exportBtn = this.container.querySelector(".export-btn");
+      if (exportBtn)
+        exportBtn.addEventListener("click", () => this.exportDrawing());
 
       // Lasso operations - only if editable
-      const lassoDeleteBtn = this.container.querySelector('.lasso-delete-btn');
-      if (lassoDeleteBtn) lassoDeleteBtn.addEventListener('click', () => {
-        if (this.editable) this.deleteLassoSelection();
-      });
+      const lassoDeleteBtn = this.container.querySelector(".lasso-delete-btn");
+      if (lassoDeleteBtn)
+        lassoDeleteBtn.addEventListener("click", () => {
+          if (this.editable) this.deleteLassoSelection();
+        });
 
-      const lassoCopyBtn = this.container.querySelector('.lasso-copy-btn');
-      if (lassoCopyBtn) lassoCopyBtn.addEventListener('click', () => {
-        if (this.editable) this.copyLassoSelection();
-      });
+      const lassoCopyBtn = this.container.querySelector(".lasso-copy-btn");
+      if (lassoCopyBtn)
+        lassoCopyBtn.addEventListener("click", () => {
+          if (this.editable) this.copyLassoSelection();
+        });
 
       // Toolbar toggle
-      const toolbarToggle = this.container.querySelector('.toolbar-toggle');
-      if (toolbarToggle) toolbarToggle.addEventListener('click', () => this.toggleToolbar());
+      const toolbarToggle = this.container.querySelector(".toolbar-toggle");
+      if (toolbarToggle)
+        toolbarToggle.addEventListener("click", () => this.toggleToolbar());
 
       // Orientation toggle
-      const orientationToggle = this.container.querySelector('.toolbar-orientation-toggle');
-      if (orientationToggle) orientationToggle.addEventListener('click', () => this.toggleOrientation());
-
-
+      const orientationToggle = this.container.querySelector(
+        ".toolbar-orientation-toggle"
+      );
+      if (orientationToggle)
+        orientationToggle.addEventListener("click", () =>
+          this.toggleOrientation()
+        );
 
       // Drag functionality
       if (this.config.toolbarDraggable) {
@@ -912,92 +965,126 @@
       }
 
       // Set initial active states
-      this.setActiveTool('pencil');
+      this.setActiveTool("pencil");
       this.setActiveColor(this.config.colors[0]);
     }
 
     setupEventListeners() {
       // Simplified and more reliable event handling for Apple Pencil
-      this.canvas.addEventListener('pointerdown', (e) => {
-        // Prevent all default behaviors that might interfere
-        e.preventDefault();
-        e.stopPropagation();
+      this.canvas.addEventListener(
+        "pointerdown",
+        (e) => {
+          // Prevent all default behaviors that might interfere
+          e.preventDefault();
+          e.stopPropagation();
 
-        // Debug logging
-        console.log(`POINTERDOWN: ID=${e.pointerId}, Type=${e.pointerType}, Primary=${e.isPrimary}, Pressure=${e.pressure}`);
+          // Debug logging
+          console.log(
+            `POINTERDOWN: ID=${e.pointerId}, Type=${e.pointerType}, Primary=${e.isPrimary}, Pressure=${e.pressure}`
+          );
 
-        // Handle events in the correct order
-        this.handlePointerDown(e);
+          // Handle events in the correct order
+          this.handlePointerDown(e);
 
-        // Only start drawing for drawing tools
-        if (this.currentTool !== 'lasso' && this.currentTool !== 'ruler') {
-          this.startDraw(e);
-        } else {
-          this.handleLassoStart(e);
-          this.handleRulerStart(e);
-        }
+          // Only start drawing for drawing tools
+          if (this.currentTool !== "lasso" && this.currentTool !== "ruler") {
+            this.startDraw(e);
+          } else {
+            this.handleLassoStart(e);
+            this.handleRulerStart(e);
+          }
 
-        this.handlePanStart(e);
-      }, { passive: false });
+          this.handlePanStart(e);
+        },
+        { passive: false }
+      );
 
-      this.canvas.addEventListener('pointermove', (e) => {
-        // Prevent all default behaviors
-        e.preventDefault();
-        e.stopPropagation();
+      this.canvas.addEventListener(
+        "pointermove",
+        (e) => {
+          // Prevent all default behaviors
+          e.preventDefault();
+          e.stopPropagation();
 
-        // Debug logging (throttled)
-        if (this.drawing && this.currentStroke && this.currentStroke.points.length % 5 === 0) {
-          console.log(`POINTERMOVE: ID=${e.pointerId}, Type=${e.pointerType}, Points=${this.currentStroke.points.length}, Pressure=${e.pressure}`);
-        }
+          // Debug logging (throttled)
+          if (
+            this.drawing &&
+            this.currentStroke &&
+            this.currentStroke.points.length % 5 === 0
+          ) {
+            console.log(
+              `POINTERMOVE: ID=${e.pointerId}, Type=${e.pointerType}, Points=${this.currentStroke.points.length}, Pressure=${e.pressure}`
+            );
+          }
 
-        // Handle drawing first (most important)
-        if (this.drawing && e.pointerId === this.primaryPointerId) {
-          this.draw(e);
-        }
+          // Handle drawing first (most important)
+          if (this.drawing && e.pointerId === this.primaryPointerId) {
+            this.draw(e);
+          }
 
-        // Then handle other tools
-        this.handleLassoMove(e);
-        this.handleRulerMove(e);
-        this.handlePanMove(e);
-      }, { passive: false });
+          // Then handle other tools
+          this.handleLassoMove(e);
+          this.handleRulerMove(e);
+          this.handlePanMove(e);
+        },
+        { passive: false }
+      );
 
-      this.canvas.addEventListener('pointerup', (e) => {
-        // Prevent all default behaviors
-        e.preventDefault();
-        e.stopPropagation();
+      this.canvas.addEventListener(
+        "pointerup",
+        (e) => {
+          // Prevent all default behaviors
+          e.preventDefault();
+          e.stopPropagation();
 
-        // Debug logging
-        console.log(`POINTERUP: ID=${e.pointerId}, Type=${e.pointerType}, Strokes=${this.strokes.length}, CurrentStroke=${this.currentStroke ? this.currentStroke.points.length + ' points' : 'null'}`);
+          // Debug logging
+          console.log(
+            `POINTERUP: ID=${e.pointerId}, Type=${e.pointerType}, Strokes=${
+              this.strokes.length
+            }, CurrentStroke=${
+              this.currentStroke
+                ? this.currentStroke.points.length + " points"
+                : "null"
+            }`
+          );
 
-        // End drawing first (most important)
-        if (this.drawing && e.pointerId === this.primaryPointerId) {
-          this.endDraw(e);
-        }
+          // End drawing first (most important)
+          if (this.drawing && e.pointerId === this.primaryPointerId) {
+            this.endDraw(e);
+          }
 
-        // Then handle other tools
-        this.handleLassoEnd(e);
-        this.handleRulerEnd(e);
-        this.handlePanEnd(e);
+          // Then handle other tools
+          this.handleLassoEnd(e);
+          this.handleRulerEnd(e);
+          this.handlePanEnd(e);
 
-        // Finally update pointer state
-        this.handlePointerUp(e);
-      }, { passive: false });
+          // Finally update pointer state
+          this.handlePointerUp(e);
+        },
+        { passive: false }
+      );
 
       // Handle pointer cancel events (critical for Apple Pencil)
-      this.canvas.addEventListener('pointercancel', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log(`POINTERCANCEL: ID=${e.pointerId}, Type=${e.pointerType}`);
+      this.canvas.addEventListener(
+        "pointercancel",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log(
+            `POINTERCANCEL: ID=${e.pointerId}, Type=${e.pointerType}`
+          );
 
-        // Treat cancel as pointer up
-        if (this.drawing && e.pointerId === this.primaryPointerId) {
-          this.endDraw(e);
-        }
-        this.handlePointerUp(e);
-      }, { passive: false });
+          // Treat cancel as pointer up
+          if (this.drawing && e.pointerId === this.primaryPointerId) {
+            this.endDraw(e);
+          }
+          this.handlePointerUp(e);
+        },
+        { passive: false }
+      );
 
       // Prevent context menu
-      this.canvas.addEventListener('contextmenu', (e) => {
+      this.canvas.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         e.stopPropagation();
       });
@@ -1006,10 +1093,15 @@
       this.setupGlobalPencilHandling();
 
       // Add window resize listener for responsive canvas
-      if (this.config.width === '100%' || this.config.height === '100%' ||
-          (typeof this.config.width === 'string' && this.config.width.includes('%')) ||
-          (typeof this.config.height === 'string' && this.config.height.includes('%'))) {
-        window.addEventListener('resize', () => {
+      if (
+        this.config.width === "100%" ||
+        this.config.height === "100%" ||
+        (typeof this.config.width === "string" &&
+          this.config.width.includes("%")) ||
+        (typeof this.config.height === "string" &&
+          this.config.height.includes("%"))
+      ) {
+        window.addEventListener("resize", () => {
           clearTimeout(this.resizeTimeout);
           this.resizeTimeout = setTimeout(() => this.resize(), 100);
         });
@@ -1033,25 +1125,28 @@
           return false;
         }
       };
-      document.addEventListener('selectstart', this.selectStartHandler);
+      document.addEventListener("selectstart", this.selectStartHandler);
     }
 
     setActiveTool(tool) {
       this.currentTool = tool;
-      this.container.querySelectorAll('.tool-btn').forEach(btn => {
-        btn.style.background = btn.dataset.tool === tool ? '#d0eaff' : '#f4f4f4';
+      this.container.querySelectorAll(".tool-btn").forEach((btn) => {
+        btn.style.background =
+          btn.dataset.tool === tool ? "#d0eaff" : "#f4f4f4";
       });
     }
 
     setActiveColor(color) {
       this.currentColor = color;
-      this.container.querySelectorAll('.color-swatch').forEach(swatch => {
-        swatch.style.transform = swatch.dataset.color === color ? 'scale(1.1)' : 'scale(1)';
-        swatch.style.border = swatch.dataset.color === color ? '2px solid #007aff' : '1px solid #e0e0e0';
+      this.container.querySelectorAll(".color-swatch").forEach((swatch) => {
+        swatch.style.transform =
+          swatch.dataset.color === color ? "scale(1.1)" : "scale(1)";
+        swatch.style.border =
+          swatch.dataset.color === color
+            ? "2px solid #007aff"
+            : "1px solid #e0e0e0";
       });
     }
-
-
 
     resetPointerStates() {
       // Clear all active pointers
@@ -1073,19 +1168,19 @@
       if (this.preventingSelection) return;
 
       this.preventingSelection = true;
-      this.originalUserSelect = document.body.style.userSelect || '';
+      this.originalUserSelect = document.body.style.userSelect || "";
 
       // Apply text selection prevention to body and document
-      document.body.style.userSelect = 'none';
-      document.body.style.webkitUserSelect = 'none';
-      document.body.style.mozUserSelect = 'none';
-      document.body.style.msUserSelect = 'none';
+      document.body.style.userSelect = "none";
+      document.body.style.webkitUserSelect = "none";
+      document.body.style.mozUserSelect = "none";
+      document.body.style.msUserSelect = "none";
 
       // Also prevent selection on document element
-      document.documentElement.style.userSelect = 'none';
-      document.documentElement.style.webkitUserSelect = 'none';
-      document.documentElement.style.mozUserSelect = 'none';
-      document.documentElement.style.msUserSelect = 'none';
+      document.documentElement.style.userSelect = "none";
+      document.documentElement.style.webkitUserSelect = "none";
+      document.documentElement.style.mozUserSelect = "none";
+      document.documentElement.style.msUserSelect = "none";
     }
 
     // Restore text selection on the page
@@ -1096,14 +1191,14 @@
 
       // Restore original user-select values
       document.body.style.userSelect = this.originalUserSelect;
-      document.body.style.webkitUserSelect = '';
-      document.body.style.mozUserSelect = '';
-      document.body.style.msUserSelect = '';
+      document.body.style.webkitUserSelect = "";
+      document.body.style.mozUserSelect = "";
+      document.body.style.msUserSelect = "";
 
-      document.documentElement.style.userSelect = '';
-      document.documentElement.style.webkitUserSelect = '';
-      document.documentElement.style.mozUserSelect = '';
-      document.documentElement.style.msUserSelect = '';
+      document.documentElement.style.userSelect = "";
+      document.documentElement.style.webkitUserSelect = "";
+      document.documentElement.style.mozUserSelect = "";
+      document.documentElement.style.msUserSelect = "";
     }
 
     startDraw(e) {
@@ -1111,18 +1206,22 @@
         console.log(`STARTDRAW BLOCKED: Not editable`);
         return;
       }
-      if (this.currentTool === 'lasso' || this.currentTool === 'ruler') {
+      if (this.currentTool === "lasso" || this.currentTool === "ruler") {
         console.log(`STARTDRAW BLOCKED: Tool is ${this.currentTool}`);
         return;
       }
 
       // Only allow the primary pointer to draw (prevents multi-touch interference)
       if (e.pointerId !== this.primaryPointerId) {
-        console.log(`STARTDRAW BLOCKED: Not primary pointer (${e.pointerId} vs ${this.primaryPointerId})`);
+        console.log(
+          `STARTDRAW BLOCKED: Not primary pointer (${e.pointerId} vs ${this.primaryPointerId})`
+        );
         return;
       }
 
-      console.log(`STARTDRAW SUCCESS: ID=${e.pointerId}, Type=${e.pointerType}`);
+      console.log(
+        `STARTDRAW SUCCESS: ID=${e.pointerId}, Type=${e.pointerType}`
+      );
 
       // Prevent text selection for all input types
       this.preventTextSelection();
@@ -1132,15 +1231,15 @@
       this.isDrawing = true; // Performance flag
       this.currentStroke = {
         tool: this.currentTool,
-        color: this.currentTool === 'eraser' ? '#fff' : this.currentColor,
+        color: this.currentTool === "eraser" ? "#fff" : this.currentColor,
         thickness: this.toolThickness[this.currentTool] || this.thickness,
         alpha: this.currentAlpha,
         points: [{ x: coords.x, y: coords.y }],
-        startTime: Date.now() // Track when stroke started
+        startTime: Date.now(), // Track when stroke started
       };
 
       // For Apple Pencil, immediately draw the initial point to ensure visibility
-      if (e.pointerType === 'pen') {
+      if (e.pointerType === "pen") {
         this.drawIncrementalStroke();
       }
     }
@@ -1158,10 +1257,10 @@
 
       // Use different minimum distances based on pointer type for better Apple Pencil support
       let minDistance = 0.8; // Default for touch/mouse
-      if (e.pointerType === 'pen') {
+      if (e.pointerType === "pen") {
         // Apple Pencil - use much smaller minimum distance for precision
         minDistance = 0.3;
-      } else if (e.pointerType === 'touch') {
+      } else if (e.pointerType === "touch") {
         // Finger touch - can use slightly larger distance
         minDistance = 1.0;
       }
@@ -1218,20 +1317,20 @@
 
     setStrokePropertiesForContext(stroke, ctx) {
       ctx.strokeStyle = stroke.color;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
 
       // Apply user-controlled alpha with tool-specific adjustments
       let baseAlpha = stroke.alpha || this.currentAlpha;
 
-      if (stroke.tool === 'marker') {
+      if (stroke.tool === "marker") {
         ctx.globalAlpha = baseAlpha * 0.4;
         ctx.shadowColor = stroke.color;
         ctx.shadowBlur = 6;
-      } else if (stroke.tool === 'pen') {
+      } else if (stroke.tool === "pen") {
         ctx.globalAlpha = baseAlpha * 0.9;
         ctx.shadowBlur = 0;
-      } else if (stroke.tool === 'pencil') {
+      } else if (stroke.tool === "pencil") {
         ctx.globalAlpha = baseAlpha * 0.85;
         ctx.shadowBlur = 0;
         ctx.shadowColor = stroke.color;
@@ -1246,14 +1345,15 @@
 
     addPoint(points, x, y, minDist = 1.5) {
       if (points.length === 0) {
-        points.push({x, y});
+        points.push({ x, y });
         return;
       }
-      
+
       const last = points[points.length - 1];
-      const dx = x - last.x, dy = y - last.y;
-      if (dx*dx + dy*dy > minDist*minDist) {
-        points.push({x, y});
+      const dx = x - last.x,
+        dy = y - last.y;
+      if (dx * dx + dy * dy > minDist * minDist) {
+        points.push({ x, y });
       }
     }
 
@@ -1263,17 +1363,25 @@
         return;
       }
       if (!this.drawing || !this.currentStroke) {
-        console.log(`ENDDRAW BLOCKED: Not drawing (${this.drawing}) or no current stroke (${!!this.currentStroke})`);
+        console.log(
+          `ENDDRAW BLOCKED: Not drawing (${
+            this.drawing
+          }) or no current stroke (${!!this.currentStroke})`
+        );
         return;
       }
 
       // Only allow the primary pointer to end drawing (prevents multi-touch interference)
       if (e.pointerId !== this.primaryPointerId) {
-        console.log(`ENDDRAW BLOCKED: Not primary pointer (${e.pointerId} vs ${this.primaryPointerId})`);
+        console.log(
+          `ENDDRAW BLOCKED: Not primary pointer (${e.pointerId} vs ${this.primaryPointerId})`
+        );
         return;
       }
 
-      console.log(`ENDDRAW SUCCESS: ID=${e.pointerId}, Type=${e.pointerType}, Points=${this.currentStroke.points.length}`);
+      console.log(
+        `ENDDRAW SUCCESS: ID=${e.pointerId}, Type=${e.pointerType}, Points=${this.currentStroke.points.length}`
+      );
 
       // Ensure we have at least one point for single taps
       if (this.currentStroke.points.length === 0) {
@@ -1296,12 +1404,7 @@
       // Restore text selection after drawing ends
       this.restoreTextSelection();
 
-      // Force a complete redraw to ensure the stroke is visible
-      // Use a small delay to ensure all processing is complete
-      setTimeout(() => {
-        this.forceRedraw();
-        console.log(`STROKE FINALIZED: Index=${strokeIndex}, Total strokes=${this.strokes.length}`);
-      }, 1);
+      this.forceRedraw();
     }
 
     // Optimized redraw with throttling
@@ -1342,7 +1445,7 @@
 
       // Ensure high quality rendering
       this.ctx.imageSmoothingEnabled = true;
-      this.ctx.imageSmoothingQuality = 'high';
+      this.ctx.imageSmoothingQuality = "high";
 
       // Use cached strokes if available and not dirty
       if (this.cacheDirty || !this.cacheCanvas) {
@@ -1351,7 +1454,13 @@
 
       // Draw cached strokes
       if (this.cacheCanvas) {
-        this.ctx.drawImage(this.cacheCanvas, 0, 0, this.actualWidth, this.actualHeight);
+        this.ctx.drawImage(
+          this.cacheCanvas,
+          0,
+          0,
+          this.actualWidth,
+          this.actualHeight
+        );
       }
 
       // Draw current stroke if exists (not cached)
@@ -1363,7 +1472,8 @@
 
       // Draw active tools
       if (this.rulerActive) this.drawRuler();
-      if (this.lassoActive || this.lassoSelectedStrokes.length > 0) this.drawLasso(true);
+      if (this.lassoActive || this.lassoSelectedStrokes.length > 0)
+        this.drawLasso(true);
     }
 
     updateCache() {
@@ -1385,14 +1495,20 @@
     // Add resize method to handle dynamic container sizing
     resize() {
       const containerRect = this.container.getBoundingClientRect();
-      const actualWidth = this.config.width === '100%' ? containerRect.width :
-                         (typeof this.config.width === 'string' && this.config.width.includes('%')) ?
-                         (parseFloat(this.config.width) / 100) * containerRect.width :
-                         parseInt(this.config.width);
-      const actualHeight = this.config.height === '100%' ? containerRect.height :
-                          (typeof this.config.height === 'string' && this.config.height.includes('%')) ?
-                          (parseFloat(this.config.height) / 100) * containerRect.height :
-                          parseInt(this.config.height);
+      const actualWidth =
+        this.config.width === "100%"
+          ? containerRect.width
+          : typeof this.config.width === "string" &&
+            this.config.width.includes("%")
+          ? (parseFloat(this.config.width) / 100) * containerRect.width
+          : parseInt(this.config.width);
+      const actualHeight =
+        this.config.height === "100%"
+          ? containerRect.height
+          : typeof this.config.height === "string" &&
+            this.config.height.includes("%")
+          ? (parseFloat(this.config.height) / 100) * containerRect.height
+          : parseInt(this.config.height);
 
       this.actualWidth = actualWidth || 800;
       this.actualHeight = actualHeight || 600;
@@ -1419,7 +1535,7 @@
 
       // Set stroke properties
       this.setStrokePropertiesForContext(stroke, ctx);
-      
+
       // Handle single point strokes
       const pts = stroke.points;
       if (pts.length < 2) {
@@ -1432,12 +1548,7 @@
         return;
       }
 
-      // Apply smoothing
-      const smoothPts = this.getCatmullRomSpline(
-        this.movingAverage(pts, 1),
-        10
-      );
-
+      const smoothPts = this.movingAverage(pts, 1);
       // Draw smoothed stroke
       ctx.beginPath();
       ctx.moveTo(smoothPts[0].x, smoothPts[0].y);
@@ -1469,106 +1580,130 @@
     }
 
     exportDrawing() {
-      if (this.config.exportFormat === 'svg' || this.config.exportFormat === 'both') {
+      if (
+        this.config.exportFormat === "svg" ||
+        this.config.exportFormat === "both"
+      ) {
         this.exportSVG();
       }
-      if (this.config.exportFormat === 'png' || this.config.exportFormat === 'both') {
+      if (
+        this.config.exportFormat === "png" ||
+        this.config.exportFormat === "both"
+      ) {
         this.exportPNG();
       }
-      if (this.config.exportFormat === 'json') {
+      if (this.config.exportFormat === "json") {
         this.exportJSON();
       }
     }
 
     exportSVG() {
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('width', this.actualWidth);
-      svg.setAttribute('height', this.actualHeight);
-      svg.setAttribute('viewBox', `0 0 ${this.actualWidth} ${this.actualHeight}`);
-      
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("width", this.actualWidth);
+      svg.setAttribute("height", this.actualHeight);
+      svg.setAttribute(
+        "viewBox",
+        `0 0 ${this.actualWidth} ${this.actualHeight}`
+      );
+
       // Add background
-      const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      background.setAttribute('width', '100%');
-      background.setAttribute('height', '100%');
-      background.setAttribute('fill', this.config.backgroundColor);
+      const background = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "rect"
+      );
+      background.setAttribute("width", "100%");
+      background.setAttribute("height", "100%");
+      background.setAttribute("fill", this.config.backgroundColor);
       svg.appendChild(background);
-      
+
       // Convert strokes to SVG with smoothing
-      this.strokes.forEach(stroke => {
+      this.strokes.forEach((stroke) => {
         if (stroke.points.length < 2) {
-          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          circle.setAttribute('cx', stroke.points[0].x);
-          circle.setAttribute('cy', stroke.points[0].y);
-          circle.setAttribute('r', stroke.thickness / 2);
-          circle.setAttribute('fill', stroke.color);
+          const circle = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "circle"
+          );
+          circle.setAttribute("cx", stroke.points[0].x);
+          circle.setAttribute("cy", stroke.points[0].y);
+          circle.setAttribute("r", stroke.thickness / 2);
+          circle.setAttribute("fill", stroke.color);
           svg.appendChild(circle);
         } else {
-          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          // Apply same smoothing as canvas rendering
-          const smoothPts = this.getCatmullRomSpline(
-            this.movingAverage(stroke.points, 3),
-            20
+          const path = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path"
           );
-          
+
+          const smoothPts = this.movingAverage(stroke.points, 3);
+
           let pathData = `M ${smoothPts[0].x} ${smoothPts[0].y}`;
           for (let i = 1; i < smoothPts.length; i++) {
             pathData += ` L ${smoothPts[i].x} ${smoothPts[i].y}`;
           }
-          
-          path.setAttribute('d', pathData);
-          path.setAttribute('stroke', stroke.color);
-          path.setAttribute('stroke-width', stroke.thickness);
-          path.setAttribute('stroke-linecap', 'round');
-          path.setAttribute('stroke-linejoin', 'round');
-          path.setAttribute('fill', 'none');
-          
+
+          path.setAttribute("d", pathData);
+          path.setAttribute("stroke", stroke.color);
+          path.setAttribute("stroke-width", stroke.thickness);
+          path.setAttribute("stroke-linecap", "round");
+          path.setAttribute("stroke-linejoin", "round");
+          path.setAttribute("fill", "none");
+
           // Add tool-specific effects
-          if (stroke.tool === 'marker') {
-            path.setAttribute('opacity', '0.3');
-            path.setAttribute('filter', 'url(#marker-filter)');
-          } else if (stroke.tool === 'pen') {
-            path.setAttribute('opacity', '0.7');
-          } else if (stroke.tool === 'pencil') {
-            path.setAttribute('opacity', '0.6');
-            path.setAttribute('stroke-dasharray', '0.5 2');
+          if (stroke.tool === "marker") {
+            path.setAttribute("opacity", "0.3");
+            path.setAttribute("filter", "url(#marker-filter)");
+          } else if (stroke.tool === "pen") {
+            path.setAttribute("opacity", "0.7");
+          } else if (stroke.tool === "pencil") {
+            path.setAttribute("opacity", "0.6");
+            path.setAttribute("stroke-dasharray", "0.5 2");
           }
-          
+
           svg.appendChild(path);
         }
       });
-      
+
       // Add marker filter definition
-      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-      filter.setAttribute('id', 'marker-filter');
-      filter.setAttribute('x', '-50%');
-      filter.setAttribute('y', '-50%');
-      filter.setAttribute('width', '200%');
-      filter.setAttribute('height', '200%');
-      
-      const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
-      blur.setAttribute('stdDeviation', '1');
+      const defs = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "defs"
+      );
+      const filter = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "filter"
+      );
+      filter.setAttribute("id", "marker-filter");
+      filter.setAttribute("x", "-50%");
+      filter.setAttribute("y", "-50%");
+      filter.setAttribute("width", "200%");
+      filter.setAttribute("height", "200%");
+
+      const blur = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "feGaussianBlur"
+      );
+      blur.setAttribute("stdDeviation", "1");
       filter.appendChild(blur);
       defs.appendChild(filter);
       svg.insertBefore(defs, svg.firstChild);
-      
+
       // Download SVG
       const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
+      const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
       const svgUrl = URL.createObjectURL(svgBlob);
-      
-      const link = document.createElement('a');
-      link.download = 'sketch.svg';
+
+      const link = document.createElement("a");
+      link.download = "sketch.svg";
       link.href = svgUrl;
       link.click();
-      
+
       URL.revokeObjectURL(svgUrl);
     }
 
     exportPNG() {
-      const link = document.createElement('a');
-      link.download = 'sketch.png';
-      link.href = this.canvas.toDataURL('image/png');
+      const link = document.createElement("a");
+      link.download = "sketch.png";
+      link.href = this.canvas.toDataURL("image/png");
       link.click();
     }
 
@@ -1578,23 +1713,23 @@
         width: this.actualWidth,
         height: this.actualHeight,
         backgroundColor: this.config.backgroundColor,
-        strokes: this.strokes.map(stroke => ({
+        strokes: this.strokes.map((stroke) => ({
           tool: stroke.tool,
           color: stroke.color,
           thickness: stroke.thickness,
-          points: stroke.points
-        }))
+          points: stroke.points,
+        })),
       };
 
       const json = JSON.stringify(sketchData);
-      const blob = new Blob([json], { type: 'application/json' });
+      const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
 
-      const link = document.createElement('a');
-      link.download = 'sketch.json';
+      const link = document.createElement("a");
+      link.download = "sketch.json";
       link.href = url;
       link.click();
-      
+
       URL.revokeObjectURL(url);
     }
 
@@ -1666,10 +1801,13 @@
     // --- New Lasso Tool Methods ---
     handleLassoStart(e) {
       if (!this.editable) return; // Block lasso if not editable
-      if (this.currentTool !== 'lasso') return;
+      if (this.currentTool !== "lasso") return;
 
       const coords = this.getCanvasCoordinates(e);
-      if (this.lassoSelectedStrokes.length > 0 && this.pointInPolygon(coords, this.lassoPoints)) {
+      if (
+        this.lassoSelectedStrokes.length > 0 &&
+        this.pointInPolygon(coords, this.lassoPoints)
+      ) {
         this.lassoDragging = true;
         this.lassoDragStart = coords;
         this.lassoLastPos = coords;
@@ -1682,21 +1820,21 @@
     }
 
     handleLassoMove(e) {
-      if (this.currentTool !== 'lasso') return;
+      if (this.currentTool !== "lasso") return;
 
       const coords = this.getCanvasCoordinates(e);
       if (this.lassoDragging && this.lassoSelectedStrokes.length > 0) {
         const dx = coords.x - this.lassoLastPos.x;
         const dy = coords.y - this.lassoLastPos.y;
 
-        this.lassoSelectedStrokes.forEach(stroke => {
-          stroke.points.forEach(pt => {
+        this.lassoSelectedStrokes.forEach((stroke) => {
+          stroke.points.forEach((pt) => {
             pt.x += dx;
             pt.y += dy;
           });
         });
 
-        this.lassoPoints.forEach(pt => {
+        this.lassoPoints.forEach((pt) => {
           pt.x += dx;
           pt.y += dy;
         });
@@ -1712,8 +1850,8 @@
     }
 
     handleLassoEnd(e) {
-      if (this.currentTool !== 'lasso') return;
-      
+      if (this.currentTool !== "lasso") return;
+
       if (this.lassoDragging) {
         this.lassoDragging = false;
         this.lassoDragStart = null;
@@ -1722,8 +1860,9 @@
         this.lassoActive = false;
         if (this.lassoPoints.length > 2) {
           this.lassoPoints.push(this.lassoPoints[0]);
-          this.lassoSelectedStrokes = this.strokes.filter(stroke => 
-            this.strokeInLasso(stroke, this.lassoPoints));
+          this.lassoSelectedStrokes = this.strokes.filter((stroke) =>
+            this.strokeInLasso(stroke, this.lassoPoints)
+          );
           this.updateLassoButtons(true);
         }
         this.redraw();
@@ -1733,22 +1872,22 @@
 
     drawLasso(final = false) {
       if (this.lassoPoints.length < 2) return;
-      
+
       this.ctx.save();
-      this.ctx.strokeStyle = final ? '#007aff' : '#aaa';
+      this.ctx.strokeStyle = final ? "#007aff" : "#aaa";
       this.ctx.setLineDash([4, 4]);
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
       this.ctx.moveTo(this.lassoPoints[0].x, this.lassoPoints[0].y);
-      
+
       for (let i = 1; i < this.lassoPoints.length; i++) {
         this.ctx.lineTo(this.lassoPoints[i].x, this.lassoPoints[i].y);
       }
-      
+
       this.ctx.stroke();
       this.ctx.setLineDash([]);
       this.ctx.restore();
-      
+
       if (final && this.lassoSelectedStrokes.length > 0) {
         for (const stroke of this.lassoSelectedStrokes) {
           this.highlightStroke(stroke);
@@ -1758,34 +1897,37 @@
 
     highlightStroke(stroke) {
       this.ctx.save();
-      this.ctx.strokeStyle = '#007aff';
+      this.ctx.strokeStyle = "#007aff";
       this.ctx.lineWidth = (stroke.thickness || 3) + 6;
       this.ctx.globalAlpha = 0.2;
       this.ctx.beginPath();
       const pts = stroke.points;
       this.ctx.moveTo(pts[0].x, pts[0].y);
-      
+
       for (let i = 1; i < pts.length; i++) {
         this.ctx.lineTo(pts[i].x, pts[i].y);
       }
-      
+
       this.ctx.stroke();
       this.ctx.restore();
     }
 
     strokeInLasso(stroke, polygon) {
-      return stroke.points.some(pt => this.pointInPolygon(pt, polygon));
+      return stroke.points.some((pt) => this.pointInPolygon(pt, polygon));
     }
 
     pointInPolygon(point, polygon) {
       let inside = false;
       for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const xi = polygon[i].x, yi = polygon[i].y;
-        const xj = polygon[j].x, yj = polygon[j].y;
-        
-        const intersect = ((yi > point.y) !== (yj > point.y)) &&
-          (point.x < (xj - xi) * (point.y - yi) / (yj - yi + 0.00001) + xi);
-        
+        const xi = polygon[i].x,
+          yi = polygon[i].y;
+        const xj = polygon[j].x,
+          yj = polygon[j].y;
+
+        const intersect =
+          yi > point.y !== yj > point.y &&
+          point.x < ((xj - xi) * (point.y - yi)) / (yj - yi + 0.00001) + xi;
+
         if (intersect) inside = !inside;
       }
       return inside;
@@ -1797,8 +1939,9 @@
 
     deleteLassoSelection() {
       if (this.lassoSelectedStrokes.length > 0) {
-        this.strokes = this.strokes.filter(stroke => 
-          !this.lassoSelectedStrokes.includes(stroke));
+        this.strokes = this.strokes.filter(
+          (stroke) => !this.lassoSelectedStrokes.includes(stroke)
+        );
         this.lassoSelectedStrokes = [];
         this.lassoPoints = [];
         this.updateLassoButtons(false);
@@ -1809,14 +1952,14 @@
     copyLassoSelection() {
       if (this.lassoSelectedStrokes.length > 0) {
         const offset = 30;
-        const newStrokes = this.lassoSelectedStrokes.map(stroke => ({
+        const newStrokes = this.lassoSelectedStrokes.map((stroke) => ({
           ...stroke,
-          points: stroke.points.map(pt => ({ 
-            x: pt.x + offset, 
-            y: pt.y + offset 
-          }))
+          points: stroke.points.map((pt) => ({
+            x: pt.x + offset,
+            y: pt.y + offset,
+          })),
         }));
-        
+
         this.strokes = this.strokes.concat(newStrokes);
         this.redraw();
       }
@@ -1825,7 +1968,7 @@
     // --- New Ruler Tool Methods ---
     handleRulerStart(e) {
       if (!this.editable) return; // Block ruler if not editable
-      if (this.currentTool !== 'ruler') return;
+      if (this.currentTool !== "ruler") return;
 
       const coords = this.getCanvasCoordinates(e);
       this.rulerActive = true;
@@ -1834,7 +1977,7 @@
     }
 
     handleRulerMove(e) {
-      if (this.currentTool !== 'ruler' || !this.rulerActive) return;
+      if (this.currentTool !== "ruler" || !this.rulerActive) return;
 
       const coords = this.getCanvasCoordinates(e);
       this.rulerEnd = this.snapToAngle(this.rulerStart, coords);
@@ -1844,17 +1987,17 @@
     }
 
     handleRulerEnd(e) {
-      if (this.currentTool !== 'ruler' || !this.rulerActive) return;
-      
+      if (this.currentTool !== "ruler" || !this.rulerActive) return;
+
       this.rulerActive = false;
       this.strokes.push({
-        tool: 'pen',
+        tool: "pen",
         color: this.currentColor,
         thickness: this.thickness,
         alpha: this.currentAlpha,
-        points: [this.rulerStart, this.rulerEnd]
+        points: [this.rulerStart, this.rulerEnd],
       });
-      
+
       this.rulerStart = null;
       this.rulerEnd = null;
       this.redraw();
@@ -1862,9 +2005,9 @@
 
     drawRuler() {
       if (!this.rulerStart || !this.rulerEnd) return;
-      
+
       this.ctx.save();
-      this.ctx.strokeStyle = '#007aff';
+      this.ctx.strokeStyle = "#007aff";
       this.ctx.lineWidth = 3;
       this.ctx.setLineDash([8, 8]);
       this.ctx.beginPath();
@@ -1882,60 +2025,70 @@
       const snap = Math.PI / 12; // 15 degrees
       const snappedAngle = Math.round(angle / snap) * snap;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      
+
       return {
         x: start.x + Math.cos(snappedAngle) * dist,
-        y: start.y + Math.sin(snappedAngle) * dist
+        y: start.y + Math.sin(snappedAngle) * dist,
       };
     }
 
     // --- New Smoothing Functions ---
     getCatmullRomSpline(points, segments = 20) {
       if (points.length < 2) return points;
-      
+
       const result = [];
       for (let i = 0; i < points.length - 1; i++) {
         const p0 = points[i - 1] || points[i];
         const p1 = points[i];
         const p2 = points[i + 1] || points[i];
         const p3 = points[i + 2] || p2;
-        
+
         for (let t = 0; t < segments; t++) {
           const s = t / segments;
-          const x = 0.5 * ((2 * p1.x) + 
-            (-p0.x + p2.x) * s + 
-            (2*p0.x - 5*p1.x + 4*p2.x - p3.x) * s * s + 
-            (-p0.x + 3*p1.x - 3*p2.x + p3.x) * s * s * s);
-          
-          const y = 0.5 * ((2 * p1.y) + 
-            (-p0.y + p2.y) * s + 
-            (2*p0.y - 5*p1.y + 4*p2.y - p3.y) * s * s + 
-            (-p0.y + 3*p1.y - 3*p2.y + p3.y) * s * s * s);
-          
+          const x =
+            0.5 *
+            (2 * p1.x +
+              (-p0.x + p2.x) * s +
+              (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * s * s +
+              (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * s * s * s);
+
+          const y =
+            0.5 *
+            (2 * p1.y +
+              (-p0.y + p2.y) * s +
+              (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * s * s +
+              (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * s * s * s);
+
           result.push({ x, y });
         }
       }
-      
+
       result.push(points[points.length - 1]);
       return result;
     }
 
     movingAverage(points, window = 3) {
       if (points.length <= window) return points;
-      
+
       const smoothed = [];
       for (let i = 0; i < points.length; i++) {
-        let sumX = 0, sumY = 0, count = 0;
-        
-        for (let j = Math.max(0, i - window); j <= Math.min(points.length - 1, i + window); j++) {
+        let sumX = 0,
+          sumY = 0,
+          count = 0;
+
+        for (
+          let j = Math.max(0, i - window);
+          j <= Math.min(points.length - 1, i + window);
+          j++
+        ) {
           sumX += points[j].x;
           sumY += points[j].y;
           count++;
         }
-        
+
         smoothed.push({ x: sumX / count, y: sumY / count });
       }
-      
+
       return smoothed;
     }
 
@@ -1944,8 +2097,6 @@
       // Always return true - no validation or restrictions
       return true;
     }
-
-
 
     // Helper method to cleanly end current stroke
     endCurrentStroke() {
@@ -1964,7 +2115,7 @@
       this.activePointers.set(e.pointerId, {
         startTime: Date.now(),
         pointerType: e.pointerType,
-        isPrimary: e.isPrimary
+        isPrimary: e.isPrimary,
       });
 
       const wasPrimary = this.primaryPointerId;
@@ -1973,21 +2124,29 @@
       if (this.primaryPointerId === null) {
         this.primaryPointerId = e.pointerId;
         this.primaryPointerType = e.pointerType;
-        console.log(`PRIMARY SET: ID=${e.pointerId}, Type=${e.pointerType} (was null)`);
-      } else if (e.pointerType === 'pen' && this.primaryPointerType !== 'pen') {
+        console.log(
+          `PRIMARY SET: ID=${e.pointerId}, Type=${e.pointerType} (was null)`
+        );
+      } else if (e.pointerType === "pen" && this.primaryPointerType !== "pen") {
         // Switch to pen if it becomes available (Apple Pencil takes priority)
         this.primaryPointerId = e.pointerId;
         this.primaryPointerType = e.pointerType;
-        console.log(`PRIMARY SWITCHED: ID=${e.pointerId}, Type=${e.pointerType} (was ${wasPrimary})`);
+        console.log(
+          `PRIMARY SWITCHED: ID=${e.pointerId}, Type=${e.pointerType} (was ${wasPrimary})`
+        );
       } else {
-        console.log(`PRIMARY KEPT: Current=${this.primaryPointerId} (${this.primaryPointerType}), New=${e.pointerId} (${e.pointerType})`);
+        console.log(
+          `PRIMARY KEPT: Current=${this.primaryPointerId} (${this.primaryPointerType}), New=${e.pointerId} (${e.pointerType})`
+        );
       }
     }
 
     handlePointerUp(e) {
       // Remove from active pointers
       this.activePointers.delete(e.pointerId);
-      console.log(`POINTER REMOVED: ID=${e.pointerId}, Active count=${this.activePointers.size}`);
+      console.log(
+        `POINTER REMOVED: ID=${e.pointerId}, Active count=${this.activePointers.size}`
+      );
 
       // Clear primary pointer if it's being lifted
       if (e.pointerId === this.primaryPointerId) {
@@ -1997,17 +2156,21 @@
 
         // If there are other active pointers, pick a new primary
         if (this.activePointers.size > 0) {
-          const [newPrimaryId, pointerInfo] = this.activePointers.entries().next().value;
+          const [newPrimaryId, pointerInfo] = this.activePointers
+            .entries()
+            .next().value;
           this.primaryPointerId = newPrimaryId;
           this.primaryPointerType = pointerInfo.pointerType;
-          console.log(`NEW PRIMARY: ID=${newPrimaryId}, Type=${pointerInfo.pointerType}`);
+          console.log(
+            `NEW PRIMARY: ID=${newPrimaryId}, Type=${pointerInfo.pointerType}`
+          );
         }
       }
     }
 
     // --- Panning Methods ---
     handlePanStart(e) {
-      if (this.currentTool === 'move') {
+      if (this.currentTool === "move") {
         this.isPanning = true;
         this.lastPanY = e.clientY;
       }
@@ -2030,28 +2193,28 @@
       if (!this.config.toolbarCollapsible) return;
 
       this.toolbarCollapsed = !this.toolbarCollapsed;
-      const toolbar = this.container.querySelector('.sketch-toolbar');
+      const toolbar = this.container.querySelector(".sketch-toolbar");
 
       if (this.toolbarCollapsed) {
-        toolbar.classList.add('collapsed');
+        toolbar.classList.add("collapsed");
       } else {
-        toolbar.classList.remove('collapsed');
+        toolbar.classList.remove("collapsed");
       }
     }
 
     showToolbar() {
       this.toolbarVisible = true;
-      const toolbar = this.container.querySelector('.sketch-toolbar');
+      const toolbar = this.container.querySelector(".sketch-toolbar");
       if (toolbar) {
-        toolbar.classList.remove('hidden');
+        toolbar.classList.remove("hidden");
       }
     }
 
     hideToolbar() {
       this.toolbarVisible = false;
-      const toolbar = this.container.querySelector('.sketch-toolbar');
+      const toolbar = this.container.querySelector(".sketch-toolbar");
       if (toolbar) {
-        toolbar.classList.add('hidden');
+        toolbar.classList.add("hidden");
       }
     }
 
@@ -2073,7 +2236,10 @@
 
     // Toggle toolbar orientation
     toggleOrientation() {
-      this.config.toolbarOrientation = this.config.toolbarOrientation === 'horizontal' ? 'vertical' : 'horizontal';
+      this.config.toolbarOrientation =
+        this.config.toolbarOrientation === "horizontal"
+          ? "vertical"
+          : "horizontal";
 
       // Recreate toolbar with new orientation
       this.createHTML();
@@ -2086,8 +2252,8 @@
 
     // Setup toolbar dragging functionality
     setupToolbarDrag() {
-      const toolbar = this.container.querySelector('.sketch-toolbar');
-      const dragHandle = this.container.querySelector('.toolbar-drag-handle');
+      const toolbar = this.container.querySelector(".sketch-toolbar");
+      const dragHandle = this.container.querySelector(".toolbar-drag-handle");
 
       if (!toolbar || !dragHandle) return;
 
@@ -2102,14 +2268,14 @@
         e.preventDefault();
         e.stopPropagation();
 
-        if (this.config.toolbarPosition !== 'floating') {
+        if (this.config.toolbarPosition !== "floating") {
           // Switch to floating mode when starting to drag
-          this.config.toolbarPosition = 'floating';
+          this.config.toolbarPosition = "floating";
           const rect = toolbar.getBoundingClientRect();
           const containerRect = this.container.getBoundingClientRect();
           this.toolbarPosition = {
             x: Math.max(0, rect.left - containerRect.left),
-            y: Math.max(0, rect.top - containerRect.top)
+            y: Math.max(0, rect.top - containerRect.top),
           };
 
           // Recreate toolbar in floating mode
@@ -2129,15 +2295,15 @@
         toolbarStart.x = this.toolbarPosition.x;
         toolbarStart.y = this.toolbarPosition.y;
 
-        toolbar.classList.add('dragging');
-        document.body.style.userSelect = 'none';
-        document.body.style.cursor = 'grabbing';
+        toolbar.classList.add("dragging");
+        document.body.style.userSelect = "none";
+        document.body.style.cursor = "grabbing";
 
         // Add event listeners
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchmove', drag, { passive: false });
-        document.addEventListener('touchend', endDrag);
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", endDrag);
+        document.addEventListener("touchmove", drag, { passive: false });
+        document.addEventListener("touchend", endDrag);
       };
 
       const drag = (e) => {
@@ -2175,34 +2341,34 @@
 
         isDragging = false;
 
-        toolbar.classList.remove('dragging');
-        document.body.style.userSelect = '';
-        document.body.style.cursor = '';
+        toolbar.classList.remove("dragging");
+        document.body.style.userSelect = "";
+        document.body.style.cursor = "";
 
         // Remove event listeners
-        document.removeEventListener('mousemove', drag);
-        document.removeEventListener('mouseup', endDrag);
-        document.removeEventListener('touchmove', drag);
-        document.removeEventListener('touchend', endDrag);
+        document.removeEventListener("mousemove", drag);
+        document.removeEventListener("mouseup", endDrag);
+        document.removeEventListener("touchmove", drag);
+        document.removeEventListener("touchend", endDrag);
 
         // Keep transform for consistency
         toolbar.style.transform = `translate(${this.toolbarPosition.x}px, ${this.toolbarPosition.y}px)`;
       };
 
       // Mouse events
-      dragHandle.addEventListener('mousedown', startDrag);
+      dragHandle.addEventListener("mousedown", startDrag);
 
       // Touch events
-      dragHandle.addEventListener('touchstart', startDrag, { passive: false });
+      dragHandle.addEventListener("touchstart", startDrag, { passive: false });
 
       // Prevent context menu
-      dragHandle.addEventListener('contextmenu', (e) => e.preventDefault());
+      dragHandle.addEventListener("contextmenu", (e) => e.preventDefault());
     }
 
     // Set toolbar position
     setToolbarPosition(position, x = 0, y = 0) {
       this.config.toolbarPosition = position;
-      if (position === 'floating') {
+      if (position === "floating") {
         this.toolbarPosition = { x, y };
       }
 
@@ -2218,15 +2384,17 @@
     destroy() {
       // Remove global event listeners
       if (this.globalPointerDownHandler) {
-        document.removeEventListener('pointerdown', this.globalPointerDownHandler);
+        document.removeEventListener(
+          "pointerdown",
+          this.globalPointerDownHandler
+        );
       }
       if (this.globalPointerUpHandler) {
-        document.removeEventListener('pointerup', this.globalPointerUpHandler);
+        document.removeEventListener("pointerup", this.globalPointerUpHandler);
       }
       if (this.selectStartHandler) {
-        document.removeEventListener('selectstart', this.selectStartHandler);
+        document.removeEventListener("selectstart", this.selectStartHandler);
       }
-
 
       // Clear timeouts
       if (this.resizeTimeout) {
@@ -2238,7 +2406,7 @@
 
       // Clear container
       if (this.container) {
-        this.container.innerHTML = '';
+        this.container.innerHTML = "";
       }
     }
 
@@ -2247,14 +2415,17 @@
       return {
         position: this.config.toolbarPosition,
         orientation: this.config.toolbarOrientation,
-        coordinates: this.config.toolbarPosition === 'floating' ? { ...this.toolbarPosition } : null
+        coordinates:
+          this.config.toolbarPosition === "floating"
+            ? { ...this.toolbarPosition }
+            : null,
       };
     }
 
     showLassoOperations(show = true) {
-      const lassoOps = this.container.querySelector('.lasso-operations');
+      const lassoOps = this.container.querySelector(".lasso-operations");
       if (lassoOps) {
-        lassoOps.style.display = show ? 'flex' : 'none';
+        lassoOps.style.display = show ? "flex" : "none";
       }
     }
 
@@ -2263,27 +2434,32 @@
       this.config = { ...this.config, ...newConfig };
 
       // Update toolbar visibility if changed
-      if (newConfig.hasOwnProperty('showToolbar')) {
+      if (newConfig.hasOwnProperty("showToolbar")) {
         this.setToolbarVisibility(newConfig.showToolbar);
       }
 
       // Update toolbar collapsed state if changed
-      if (newConfig.hasOwnProperty('toolbarCollapsed')) {
+      if (newConfig.hasOwnProperty("toolbarCollapsed")) {
         this.toolbarCollapsed = newConfig.toolbarCollapsed;
         this.toggleToolbar();
       }
 
       // Update editable state if changed
-      if (newConfig.hasOwnProperty('editable') || newConfig.hasOwnProperty('readOnly')) {
+      if (
+        newConfig.hasOwnProperty("editable") ||
+        newConfig.hasOwnProperty("readOnly")
+      ) {
         this.setEditable(newConfig.readOnly ? false : newConfig.editable);
       }
 
       // Recreate HTML if major changes
-      if (newConfig.hasOwnProperty('toolbarPosition') ||
-          newConfig.hasOwnProperty('tools') ||
-          newConfig.hasOwnProperty('colors') ||
-          newConfig.hasOwnProperty('editable') ||
-          newConfig.hasOwnProperty('readOnly')) {
+      if (
+        newConfig.hasOwnProperty("toolbarPosition") ||
+        newConfig.hasOwnProperty("tools") ||
+        newConfig.hasOwnProperty("colors") ||
+        newConfig.hasOwnProperty("editable") ||
+        newConfig.hasOwnProperty("readOnly")
+      ) {
         this.createHTML();
         setTimeout(() => {
           this.setupCanvas();
@@ -2300,12 +2476,12 @@
       this.config.readOnly = !editable;
 
       // Update CSS classes
-      const widget = this.container.querySelector('.sketch-widget');
+      const widget = this.container.querySelector(".sketch-widget");
       if (widget) {
         if (editable) {
-          widget.classList.remove('non-editable', 'read-only-indicator');
+          widget.classList.remove("non-editable", "read-only-indicator");
         } else {
-          widget.classList.add('non-editable', 'read-only-indicator');
+          widget.classList.add("non-editable", "read-only-indicator");
         }
       }
     }
@@ -2359,8 +2535,8 @@
         strokeCount: this.strokes.length,
         canvasSize: {
           width: this.actualWidth,
-          height: this.actualHeight
-        }
+          height: this.actualHeight,
+        },
       };
     }
   }
@@ -2369,18 +2545,20 @@
   window.SketchWidget = SketchWidget;
 
   // Auto-initialize if data-sketch-widget attribute is found
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-sketch-widget]').forEach(element => {
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-sketch-widget]").forEach((element) => {
       const config = {};
-      
+
       // Parse configuration from data attributes
       if (element.dataset.width) config.width = parseInt(element.dataset.width);
-      if (element.dataset.height) config.height = parseInt(element.dataset.height);
-      if (element.dataset.backgroundColor) config.backgroundColor = element.dataset.backgroundColor;
-      if (element.dataset.exportFormat) config.exportFormat = element.dataset.exportFormat;
-      
+      if (element.dataset.height)
+        config.height = parseInt(element.dataset.height);
+      if (element.dataset.backgroundColor)
+        config.backgroundColor = element.dataset.backgroundColor;
+      if (element.dataset.exportFormat)
+        config.exportFormat = element.dataset.exportFormat;
+
       new SketchWidget(element, config);
     });
   });
-
-})(window, document); 
+})(window, document);
